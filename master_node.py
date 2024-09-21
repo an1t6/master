@@ -81,23 +81,28 @@ def main():
     total_times = [0] * WORKER_NUM
     lock = threading.Lock()
 
-    # 로그 설정
-    master_logger = setup_logging('master.txt')
-    worker_loggers = [setup_logging(f'worker{i + 1}.txt') for i in range(WORKER_NUM)]
-
-    log_message(master_logger, f'{MAX_SIZE}x{MAX_SIZE} 크기의 행렬 2개의 곱 연산을 {WORKER_NUM}개의 워커를 생성하여 시작합니다.')
-
-    start_time = time.time()
-
-    # 소켓 설정 및 클라이언트 연결
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('ec2-43-203-247-248.ap-northeast-2.compute.amazonaws.com', PORT))
     server_socket.listen(WORKER_NUM)
 
     worker_threads = []
+    
+    # 로그 설정
+    master_logger = setup_logging('master.txt')
+    worker_loggers = [setup_logging(f'worker{i + 1}.txt') for i in range(WORKER_NUM)]
+
+    log_message(master_logger, f'{MAX_SIZE}x{MAX_SIZE} 크기의 행렬 2개의 곱 연산을 {WORKER_NUM}개의 워커를 생성하여 시작합니다.')
+    print(f'워커가 접속하길 기다리는 중...')
+
+    start_time = time.time()
+
+    # 워커 노드 연결 대기
     for worker_id in range(WORKER_NUM):
         worker_socket, addr = server_socket.accept()
+        print(f'워커 {worker_id + 1} 연결 성공 {addr}')
         log_message(master_logger, f'워커 {worker_id + 1}이 연결됨 {addr}')
+        
+        # 워커 스레드 생성 및 실행
         t = threading.Thread(target=worker_handler, args=(worker_socket, worker_id, tasks, Mat1, Mat2, result, task_counts, total_times, lock, worker_loggers, master_logger))
         t.start()
         worker_threads.append(t)
