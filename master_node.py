@@ -22,8 +22,10 @@ def setup_logging(filename):
     logger.addHandler(handler)
     return logger
 
+# 로그 기록 및 콘솔 출력
 def log_message(logger, message):
     logger.info(message)
+    print(message)  # 콘솔에도 출력
 
 # 랜덤 딜레이 함수
 def random_delay():
@@ -116,7 +118,7 @@ def main():
     # 총 작업 수 계산
     total_tasks_completed = sum(task_counts)
 
-    # 로그 기록
+    # 로그 기록 및 콘솔 출력
     log_message(master_logger, f'총 작업 수 {total_tasks_completed}')
     log_message(master_logger, f'총 연산 수행 시간 {total_time} 초')
     for i in range(WORKER_NUM):
