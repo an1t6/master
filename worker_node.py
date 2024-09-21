@@ -7,7 +7,7 @@ import time
 MAX_SIZE = 10
 DELAY = {'min': 1, 'max': 3}  # 1~3초 랜덤 딜레이
 SUCCESS_RATE = 0.8  # 80% 확률로 작업 성공
-PORT = 9999
+PORT = 8081
 
 # 랜덤 딜레이 함수
 def random_delay():
@@ -32,7 +32,7 @@ def process_task(task, Mat1, Mat2):
 # 워커 스레드 함수
 def worker_thread(worker_id):
     worker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    worker_socket.connect(('localhost', PORT))
+    worker_socket.connect(('ec2-43-203-247-248.ap-northeast-2.compute.amazonaws.com', PORT))
 
     while True:
         # 마스터로부터 작업 수신

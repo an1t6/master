@@ -10,7 +10,7 @@ WORKER_NUM = 4
 DELAY = {'min': 1, 'max': 3}  # 1~3초 랜덤 딜레이
 SUCCESS_RATE = 0.8  # 80% 확률로 작업 성공
 COMMUNICATION_DELAY = 1  # 통신 지연 1초
-PORT = 9999
+PORT = 8081
 
 # 로그 설정
 def setup_logging(filename):
@@ -91,7 +91,7 @@ def main():
 
     # 소켓 설정 및 클라이언트 연결
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('localhost', PORT))
+    server_socket.bind(('ec2-43-203-247-248.ap-northeast-2.compute.amazonaws.com', PORT))
     server_socket.listen(WORKER_NUM)
 
     worker_threads = []
