@@ -1,56 +1,66 @@
 import socket
+import threading
+import pickle
 import random
 import time
 
 MAX_SIZE = 10
-SUCCESS_RATE = 0.8  # 80% 확률로 작업 성공
 DELAY = {'min': 1, 'max': 3}  # 1~3초 랜덤 딜레이
-ip_address = '127.0.0.1'
-port_number = 8000
+SUCCESS_RATE = 0.8  # 80% 확률로 작업 성공
+PORT = 9999
 
 # 랜덤 딜레이 함수
 def random_delay():
     return random.randint(DELAY['min'], DELAY['max'])
 
-# 행렬 생성 함수
-def create_matrix(size):
-    return [[random.randint(0, 99) for _ in range(size)] for _ in range(size)]
-
-def process_task(Mat1, Mat2, row, col):
+# 작업 처리 함수
+def process_task(task, Mat1, Mat2):
+    row, col = task['row'], task['col']
     row_data = Mat1[row]
     col_data = [Mat2[i][col] for i in range(MAX_SIZE)]
     task_result = sum(row_data[i] * col_data[i] for i in range(MAX_SIZE))
     time_taken = random_delay()
-
-    time.sleep(time_taken)  # 작업 지연
-
+    time.sleep(time_taken)
     success = random.random() < SUCCESS_RATE
 
-    return task_result, success, time_taken
+    return {
+        'success': success,
+        'result': task_result,
+        'time_taken': time_taken
+    }
 
-def main():
-    Mat1 = create_matrix(MAX_SIZE)
-    Mat2 = create_matrix(MAX_SIZE)
-
-    # 소켓 클라이언트 설정
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect(('localhost', 8080))
+# 워커 스레드 함수
+def worker_thread(worker_id):
+    worker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    worker_socket.connect(('localhost', PORT))
 
     while True:
-        # 마스터로부터 작업 받기
-        data = client_socket.recv(1024).decode()
-        if not data:
+        # 마스터로부터 작업 수신
+        task_data = pickle.loads(worker_socket.recv(4096))
+
+        if not task_data:
             break
-        row, col = map(int, data.split(','))
 
-        # 작업 처리
-        task_result, success, time_taken = process_task(Mat1, Mat2, row, col)
+        task = task_data['task']
+        Mat1 = task_data['Mat1']
+        Mat2 = task_data['Mat2']
 
-        # 마스터에게 결과 전송
-        client_socket.sendall(f"{task_result},{success},{time_taken}".encode())
+        # 작업 처리 및 결과 전송
+        result = process_task(task, Mat1, Mat2)
+        worker_socket.sendall(pickle.dumps(result))
 
-    # 소켓 닫기
-    client_socket.close()
+    worker_socket.close()
+
+# 메인 함수
+def main():
+    threads = []
+    for worker_id in range(4):  # 4개의 워커 스레드 생성
+        t = threading.Thread(target=worker_thread, args=(worker_id,))
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
 
 if __name__ == '__main__':
     main()
