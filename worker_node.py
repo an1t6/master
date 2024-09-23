@@ -35,6 +35,7 @@ def worker_thread(worker_num):
         Mat2 = temp_data['Mat2']
         result = run_temp(temp, Mat1, Mat2)
         worker_socket.sendall(pickle.dumps(result))
+        
     worker_socket.close()
 
 def main():
