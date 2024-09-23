@@ -24,7 +24,7 @@ def run_temp(temp, Mat1, Mat2):
 def worker_thread(worker_num):
     
     worker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    worker_socket.connect(('127.0.0.1', PORT))
+    worker_socket.connect(('ec2-43-203-247-248.ap-northeast-2.compute.amazonaws.com', PORT))
 
     while True:
         temp_data = pickle.loads(worker_socket.recv(4096))

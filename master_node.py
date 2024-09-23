@@ -8,7 +8,7 @@ from queue import Queue
 
 SIZE = 10
 WORKERS = 4
-DELAY = {'min': 1, 'max': 3} 
+DELAY = {'min': 1, 'max': 3}
 ONE_SEC_DELAY = 1
 PORT = 8081
 
@@ -71,7 +71,7 @@ def manage_worker(worker_socket, worker_num, temps_queue, Mat1, Mat2, result, co
         
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('127.0.0.1', PORT))
+    server.bind(('ec2-43-203-247-248.ap-northeast-2.compute.amazonaws.com', PORT))
     server.listen(WORKERS)
     
     Mat1 = create_matrix(SIZE)
