@@ -38,21 +38,18 @@ def manage_worker(worker_socket, worker_num, temps_queue, Mat1, Mat2, result, co
                 temp = temps_queue.get()  
             else:
                 break
-        
         if temp is None:
             break
-
-        # 워커에 보낼 데이터 준비
+        
         temp_data = {'temp': temp, 'Mat1': Mat1, 'Mat2': Mat2}
-        worker_socket.sendall(pickle.dumps(temp_data))  # 워커에게 작업 전송
-        worker_response = pickle.loads(worker_socket.recv(4096))  # 워커로부터 결과 수신
+        worker_socket.sendall(pickle.dumps(temp_data)) 
+        worker_response = pickle.loads(worker_socket.recv(4096))  
         success = worker_response['success']
         temp_result = worker_response['result']
         row, col = temp['row'], temp['col']
         run_time = worker_response['run_time']
         current_location = f"[{row}, {col}]"
         worker_logger = worker_log[worker_num]
-
         with lock:
             if success:
                 result[row][col] = temp_result
@@ -70,22 +67,17 @@ def manage_worker(worker_socket, worker_num, temps_queue, Mat1, Mat2, result, co
         time.sleep(ONE_SEC_DELAY)
 
 def main():
-    # 서버 소켓 설정
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(('ec2-43-203-247-248.ap-northeast-2.compute.amazonaws.com', PORT))
     server.listen(WORKERS)
-    
-    # 행렬 생성
+
     Mat1 = create_matrix(SIZE)
     Mat2 = create_matrix(SIZE)
     result = [[0] * SIZE for _ in range(SIZE)]
     temps_queue = Queue()
-    
-    # 작업 큐 설정
     for i in range(SIZE):
         for j in range(SIZE):
             temps_queue.put({'row': i, 'col': j})
-    
     count = [0] * WORKERS
     start_time = time.time()
     total_times = [0] * WORKERS
@@ -96,7 +88,6 @@ def main():
     
     print(f'워커의 접속을 기다리는 중...')
     
-    # 워커 연결 및 쓰레드 시작
     for worker_num in range(WORKERS):
         worker_socket, addr = server.accept()
         log_print(master_log, f'워커 {worker_num + 1} 연결됨: {addr}')
@@ -106,17 +97,13 @@ def main():
         worker_threads.append(t)
         
     log_print(master_log, f'{SIZE}x{SIZE} 크기의 행렬 2개를 {WORKERS}개의 워커로 연산 시작')
-    
-    # 모든 워커 쓰레드가 작업을 완료할 때까지 대기
     for t in worker_threads:
         t.join()
-
-    # 전체 작업 완료 후 로그 출력
+        
     total_complete = sum(count)
     total_time = round(time.time() - start_time)
     log_print(master_log, f'총 작업 수: {total_complete}')
     log_print(master_log, f'총 연산 수행 시간: {total_time}초')
-    
     for i in range(WORKERS):
         log_print(worker_log[i], f'워커 {i + 1}이 처리한 작업 수: {count[i]}')
         log_print(worker_log[i], f'워커 {i + 1}이 수행한 시간: {total_times[i]}초')
