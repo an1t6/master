@@ -72,7 +72,7 @@ def manage_worker(worker_socket, worker_num, temps_queue, Mat1, Mat2, result, co
 def main():
     # 서버 소켓 설정
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('127.0.0.1', PORT))
+    server.bind(('ec2-43-203-247-248.ap-northeast-2.compute.amazonaws.com', PORT))
     server.listen(WORKERS)
     
     # 행렬 생성
